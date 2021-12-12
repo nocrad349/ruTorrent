@@ -6,6 +6,7 @@
 .jsdtscope
 
 # ruTorrent
+conf/config.php
 conf/users/*
 share/users/*
 share/torrents/*
