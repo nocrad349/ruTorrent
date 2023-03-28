@@ -80,6 +80,7 @@ class Snoopy
 	// send Accept-encoding: gzip?
 	var $use_gzip		=	true;	
 	var $IP			=	null;
+	var $useIpv4		=	false;
 
 	/**** Private variables ****/	
 
@@ -97,12 +98,16 @@ class Snoopy
 	{
 		global $httpIP;
 		global $httpProxy;
-		if(@constant('HTTP_USER_AGENT')!==null)
-			$this->agent = @constant('HTTP_USER_AGENT');
-		if(@constant('HTTP_TIME_OUT')!==null)
+		global $httpUserAgent;
+		global $httpTimeOut;
+		global $httpUseGzip;
+		
+		if(isset($httpUserAgent))
+			$this->agent = $httpUserAgent;
+		if(isset($httpTimeOut))
 		{
-			$this->_fp_timeout = @constant('HTTP_TIME_OUT');
-			$this->read_timeout = @constant('HTTP_TIME_OUT');
+			$this->_fp_timeout = $httpTimeOut;
+			$this->read_timeout = $httpTimeOut;
 		}
 		if(is_array($httpProxy) && $httpProxy['use'])
 		{
@@ -110,7 +115,8 @@ class Snoopy
 			$this->proxy_host = $httpProxy['host'];
 			$this->proxy_port = $httpProxy['port'];
 		}
-		$this->use_gzip = @constant('HTTP_USE_GZIP');
+		if (isset($httpUseGzip))
+			$this->use_gzip = $httpUseGzip;
 		if(isset($httpIP))
 			$this->IP = $httpIP;
 	}
@@ -385,14 +391,12 @@ class Snoopy
 			socket_set_timeout($fp, $this->read_timeout);
 		$this->timed_out = false;
 		fwrite($fp,$headers.$body,strlen($headers.$body));
-//toLog($headers.$body);
 		$this->_redirectaddr = false;
 		$this->headers = array();
 		$is_gzipped = false;
 						
 		while($currentHeader = fgets($fp,$this->_maxlinelen))
 		{
-//toLog($currentHeader);
 			if ($this->read_timeout > 0 && $this->_check_timeout($fp))
 			{
 				$this->status=-100;
@@ -454,9 +458,9 @@ class Snoopy
 			}
 			else
 			{
-				$randName = getTempFilename('answer');
+				$randName = FileUtil::getTempFilename('answer');
 				file_put_contents($randName.".gz",$results);
-				exec(escapeshellarg(getExternal('gzip'))." -d ".$randName.".gz",$results,$return);
+				exec(escapeshellarg(Utility::getExternal('gzip'))." -d ".$randName.".gz",$results,$return);
 				if(is_file($randName))
 				{
 					$results = file_get_contents($randName);
@@ -476,7 +480,6 @@ class Snoopy
 		}
 
 		$this->results = $results;
-//toLog($this->results);		
 		return true;
 	}
 
@@ -484,7 +487,6 @@ class Snoopy
 	{
 		if($this->passcookies && $this->_redirectaddr)
 			$this->setcookies();
-
 		$headers = array();		
 		if(!empty($this->agent))
 			$headers[] = "User-Agent: ".$this->agent;
@@ -528,15 +530,18 @@ class Snoopy
 		if(!is_null($this->IP))
 			$cmdline_params .= " --interface ".$this->IP;
 
+		if($this->useIpv4)
+			$cmdline_params .= " --ipv4";
+
 		if($this->_isproxy)
 			$cmdline_params .= " --proxy-insecure --proxy ".(empty($this->proxy_proto) ? '' : $this->proxy_proto.'://').$this->proxy_host.":".$this->proxy_port;
 		
-		$headerfile = getTempFilename('https-header');
-		$contfile = getTempFilename('https-body');
+		$headerfile = FileUtil::getTempFilename('https-header');
+		$contfile = FileUtil::getTempFilename('https-body');
 		
 		# accept self-signed certs
 		$cmdline_params .= " -k -s "; 
-		exec(escapeshellarg(getExternal('curl'))." -g -D ".escapeshellarg($headerfile)." -o ".escapeshellarg($contfile)." ".$cmdline_params." ".escapeshellarg($url),$results,$return);
+		exec(escapeshellarg(Utility::getExternal('curl'))." -g -D ".escapeshellarg($headerfile)." -o ".escapeshellarg($contfile)." ".$cmdline_params." ".escapeshellarg($url),$results,$return);
 		$this->_redirectaddr = false;
 		$this->headers = array();
 		$this->status = $return;
@@ -595,9 +600,9 @@ class Snoopy
 				}
 				else
 				{
-					$randName = getTempFilename('answer');
+					$randName = FileUtil::getTempFilename('answer');
 					file_put_contents($randName.".gz",$results);
-					exec(escapeshellarg(getExternal('gzip'))." -d ".$randName.".gz",$results,$return);
+					exec(escapeshellarg(Utility::getExternal('gzip'))." -d ".$randName.".gz",$results,$return);
 					if(is_file($randName))
 					{
 						$results = file_get_contents($randName);
@@ -609,7 +614,6 @@ class Snoopy
 					}
 				}
 			}
-
 			$this->results = $results;
 		}
 		@unlink($headerfile);

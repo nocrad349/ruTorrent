@@ -3,7 +3,7 @@
 require_once( dirname(__FILE__).'/../../php/cache.php');
 require_once( dirname(__FILE__).'/../../php/Snoopy.class.inc');
 require_once( dirname(__FILE__).'/../../php/rtorrent.php' );
-eval(getPluginConf('rss'));
+eval(FileUtil::getPluginConf('rss'));
 
 class rRSS
 {
@@ -17,6 +17,7 @@ class rRSS
 	public $etag = null;
 	public $encoding = null;
 	public $version = 0;
+	public $lastErrorMsgs = [];
 	private $isValid=false;
 	private $channeltags = array('title', 'link', 'lastBuildDate');
 	private $itemtags = array('title', 'link', 'pubDate', 'enclosure', 'guid', 'source', 'description', 'dc:date');
@@ -76,11 +77,11 @@ class rRSS
 			$name = $cli->get_filename();
 			if($name===false)
 				$name = md5($href).".torrent";
-			$name = getUniqueUploadedFilename($name);
+			$name = FileUtil::getUniqueUploadedFilename($name);
 			$f = @fopen($name,"w");
 			if($f===false)
 			{
-				$name = getUniqueUploadedFilename(md5($href).".torrent");
+				$name = FileUtil::getUniqueUploadedFilename(md5($href).".torrent");
 				$f = @fopen($name,"w");
 			}
 			if($f!==false)
@@ -125,13 +126,20 @@ class rRSS
 	public function fetch( $history )
 	{
 		$headers = array();
+		$this->lastErrorMsgs = [];
 		if($this->etag) 
 			$headers['If-None-Match'] = trim($this->etag);
 		if($this->lastModified)
 	                $headers['If-Last-Modified'] = trim($this->lastModified);
 		$cli = self::fetchURL($this->url,$this->cookies,$headers);
-		if($cli->status==304)
-			return(true);
+		if($cli->status<200 || $cli->status>=300) {
+			if ($cli->status!==304) {
+				$this->lastErrorMsgs[] = $cli->status == -100 ? '[RSS-Timeout]' :
+					($cli->status < 100 ? '[RSS-Connection-Error] '.$cli->error : '[RSS-HTTP-Error] Status: '.$cli->status);
+			}
+			// true if feed not modified
+			return($cli->status===304);
+		}
 		$this->etag = null;
 		$this->lastModified = null;
 		if($cli->status>=200 && $cli->status<300)
@@ -363,8 +371,8 @@ class rRSS
 			else
 			if($needTranslate)
 				$out[1] = self::removeTegs( $out[1] );
-			if( isInvalidUTF8( $out[1] ) )
-				$out[1] = win2utf($out[1]);
+			if( UTF::isInvalidUTF8( $out[1] ) )
+				$out[1] = UTF::win2utf($out[1]);
 			return(trim($out[1]));
 		}
 		else
@@ -381,7 +389,7 @@ class rRSS
                 if(function_exists('mb_convert_encoding'))
 			$out = mb_convert_encoding($out, 'UTF-8', $this->encoding );
 		else
-			$out = win2utf($out);
+			$out = UTF::win2utf($out);
 		return($out);
 	}
 
@@ -835,6 +843,7 @@ class rRSSData
 {
 	public $hash = "data";
 	public $interval = 30;
+	public $delayErrorsUI = true;
 }
 
 class rRSSManager
@@ -858,14 +867,17 @@ class rRSSManager
 		$this->data = new rRSSData();
 		$this->cache->get($this->data);
 	}
-	public function setInterval($interval)
+	public function setSettings($interval, $delay_err_ui)
 	{
+		// setInterval
 		global $minInterval;
 		if(!isset($minInterval))
 			$minInterval = 2;
 		if($interval<$minInterval)
 			$interval = $minInterval;
 		$this->data->interval = $interval;
+		// set delay ui errors
+		$this->data->delayErrorsUI = (bool) $delay_err_ui;
 		$this->cache->set($this->data);
 		$this->setHandlers();
 	}
@@ -873,7 +885,7 @@ class rRSSManager
 	{
 	        $startAt = 0;
 		$req = new rXMLRPCRequest( rTorrentSettings::get()->getScheduleCommand("rss",$this->data->interval,
-			getCmd('execute').'={sh,-c,'.escapeshellarg(getPHP()).' '.escapeshellarg(dirname(__FILE__).'/update.php').' '.escapeshellarg(getUser()).' & exit 0}', $startAt) );
+			getCmd('execute').'={sh,-c,'.escapeshellarg(Utility::getPHP()).' '.escapeshellarg(dirname(__FILE__).'/update.php').' '.escapeshellarg(User::getUser()).' & exit 0}', $startAt) );
 		if($req->success())
 		{
 			$this->setStartTime($startAt);
@@ -1040,6 +1052,14 @@ class rRSSManager
 		if($grp)
 			$this->updateRSS($grp->lst);
 	}
+	private function tryFetch($rss) {
+		$success = $rss->fetch($this->history) && $this->cache->set($rss);
+		if (!$success) {
+			$this->rssList->addError( "theUILang.cantFetchRSS + ' - ".join("; ", $rss->lastErrorMsgs)."'", $rss->getMaskedURL() );
+		}
+		return($success);
+	}
+
 	public function updateRSS($hash)
 	{
 		$filters = $this->loadFilters();
@@ -1054,13 +1074,11 @@ class rRSSManager
 				$info = $this->rssList->lst[$item];
 	                        if($this->cache->get($rss) && $info['enabled'])
 				{
-					if($rss->fetch($this->history) && $this->cache->set($rss))
+					if($this->tryFetch($rss))
 					{
 						$this->checkFilters($rss,$filters);
 						$this->saveHistory();
 					}
-					else
-						$this->rssList->addError( "theUILang.cantFetchRSS", $rss->getMaskedURL() );
 				}
 			}
 			else
@@ -1081,10 +1099,10 @@ class rRSSManager
 			$rss->hash = $hash;
 			if($this->cache->get($rss) && $info['enabled'])
 			{
-				if($rss->fetch($this->history) && $this->cache->set($rss))
+				if($this->tryFetch($rss))
+				{
 					$this->checkFilters($rss,$filters);
-				else
-					$this->rssList->addError( "theUILang.cantFetchRSS", $rss->getMaskedURL() );
+				}
 			}
 		}
 		if(!$manual)
@@ -1094,12 +1112,16 @@ class rRSSManager
 		}
 		$this->saveHistory();
 	}
-	public function getIntervals()
+	public function getSettings()
 	{
 		$nextTouch = $this->data->interval*60;
 		if($this->rssList->updatedAt)
 			$nextTouch = $nextTouch-(time()-$this->rssList->updatedAt)+45;
-		return(array( "next"=>$nextTouch, "interval"=>$this->data->interval ));
+		return([
+			"next"=>$nextTouch,
+			"interval"=>$this->data->interval,
+			"delayerrui"=>$this->data->delayErrorsUI
+		]);
 	}
 	public function get()
 	{
@@ -1249,7 +1271,7 @@ class rRSSManager
 		$rss = new rRSS($rssURL);
 		if(!$this->rssList->isExist($rss))
 		{
-			if($rss->fetch($this->history) && $this->cache->set($rss))
+			if($this->tryFetch($rss))
 			{
 			        if($rssLabel)
 			        	$rssLabel = trim($rssLabel);
@@ -1265,8 +1287,6 @@ class rRSSManager
 				$this->checkFilters($rss);
 				$this->saveHistory();
 			}
-			else
-				$this->rssList->addError( "theUILang.cantFetchRSS", $rss->getMaskedURL() );
 		}
 		else
 			$this->rssList->addError( "theUILang.rssAlreadyExist", $rss->getMaskedURL() );
@@ -1368,7 +1388,7 @@ class rRSSManager
 		global $rss_debug_enabled;
 		if( $rss_debug_enabled ) 
 		{
-			toLog("RSS: $msg");
+			FileUtil::toLog("RSS: $msg");
 		}
 	}
 
