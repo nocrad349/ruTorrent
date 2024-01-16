@@ -1,11 +1,12 @@
 <?php
 require_once( dirname(__FILE__)."/../../php/xmlrpc.php" );
-require_once( $rootPath.'/php/cache.php');
+require_once( dirname(__FILE__)."/../../php/cache.php" );
 eval(FileUtil::getPluginConf('throttle'));
 
 class rThrottle
 {
 	public $hash = "throttle.dat";
+	public $modified = false;
 	public $thr = array();
 	public $default = 0;
 

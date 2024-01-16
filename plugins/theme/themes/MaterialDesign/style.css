@@ -1,8 +1,20 @@
-@import url(https://fonts.googleapis.com/css?family=Roboto:400,600,700,300);
-
-@font-face
-{
-	font-family:'Roboto'!important
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  src: url(./font/roboto-300.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./font/roboto-400.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: url(./font/roboto-700.ttf) format('truetype');
 }
 
 html,body
@@ -177,21 +189,6 @@ ul.CMenu li ul li a.dis:hover
 	color:#333
 }
 
-div.stable-body table tbody tr.even:nth-child(2n+1) td
-{
-	background:#252525!important
-}
-
-.stable-body td
-{
-	border-bottom:1px solid #252525!important
-}
-
-.stable-body tr.odd td
-{
-	background:#2A2A2A!important
-}
-
 #tdetails
 {
 	overflow:hidden
@@ -214,7 +211,7 @@ div#t
 	background-color:#273238;
 	background-image:none;
 	border-bottom:none;
-	padding:4px 0 2px 0;
+	padding:4px 0 2px 5px;
 	height: 40px;
 }
 
@@ -229,7 +226,14 @@ div#t a
 
 div#t a:hover
 {
-	background:none
+	background: none;
+	filter: brightness(1.2);
+}
+
+div#t a:active
+{
+	background: none;
+	filter: brightness(1.3);
 }
 
 div#t div.TB_Separator
@@ -242,12 +246,7 @@ div#t div.TB_Separator
 
 div#t div#add
 {
-	background:transparent url(./images/toolbar.png) no-repeat 0 0
-}
-
-div#t div#add:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat 0 -24px
+	background:transparent url(./images/toolbar.png) no-repeat 0 1px;
 }
 
 div#t div#create
@@ -255,19 +254,9 @@ div#t div#create
 	background:transparent url(./images/toolbar.png) no-repeat -24px 0
 }
 
-div#t div#create:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -24px -24px
-}
-
 div#t div#remove
 {
 	background:transparent url(./images/toolbar.png) no-repeat -48px 0
-}
-
-div#t div#remove:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -48px -24px
 }
 
 div#t div#start
@@ -275,19 +264,9 @@ div#t div#start
 	background:transparent url(./images/toolbar.png) no-repeat -72px 0
 }
 
-div#t div#start:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -72px -24px
-}
-
 div#t div#pause
 {
 	background:transparent url(./images/toolbar.png) no-repeat -96px 0
-}
-
-div#t div#pause:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -96px -24px
 }
 
 div#t div#stop
@@ -295,19 +274,9 @@ div#t div#stop
 	background:transparent url(./images/toolbar.png) no-repeat -120px 0
 }
 
-div#t div#stop:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -120px -24px
-}
-
 div#t div#moveu
 {
 	background:transparent url(./images/toolbar.png) no-repeat -144px 0
-}
-
-div#t div#moveu:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -144px -24px
 }
 
 div#t div#moved
@@ -315,19 +284,9 @@ div#t div#moved
 	background:transparent url(./images/toolbar.png) no-repeat -168px 0
 }
 
-div#t div#moved:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -168px -24px
-}
-
 div#t div#search
 {
 	background:transparent url(./images/toolbar.png) no-repeat -192px 0
-}
-
-div#t div#search:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -192px -24px
 }
 
 div#t div#rss
@@ -335,19 +294,9 @@ div#t div#rss
 	background:transparent url(./images/toolbar.png) no-repeat -241px 0
 }
 
-div#t div#rss:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -241px -24px
-}
-
 div#t div#setting
 {
 	background:transparent url(./images/toolbar.png) no-repeat -264px 0
-}
-
-div#t div#setting:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -264px -24px
 }
 
 div#t div#plugins
@@ -355,29 +304,14 @@ div#t div#plugins
 	background:transparent url(./images/plugin.png) no-repeat 0 center
 }
 
-div#t div#plugins:hover
-{
-	background:transparent url(./images/pluginh.png) no-repeat 0 center
-}
-
 div#t div#help
 {
 	background:transparent url(./images/toolbar.png) no-repeat -288px 0
 }
 
-div#t div#help:hover
-{
-	background:transparent url(./images/toolbar.png) no-repeat -288px -24px
-}
-
 div#t div#go
 {
 	background:transparent url(./images/go.png) no-repeat 0 0
-}
-
-div#t div#go:hover
-{
-	background:transparent url(./images/goh.png) no-repeat 0 0
 }
 
 div select {
@@ -430,15 +364,18 @@ div#CatList
 	border-left:none
 }
 
-
-
-
 div#CatList ul li
 {
 	color:#FFF;
 	border:none;
 	padding: 4px;
-	font-family:'Roboto'
+	font-family:'Roboto';
+	background-color: #1A2329;
+}
+
+div#CatList ul li:hover
+{
+	background-color: #161F25;
 }
 
 div#CatList .label-prefix
@@ -449,20 +386,33 @@ div#CatList .label-prefix
 
 div#CatList ul li.sel
 {
-	background-color:transparent;
+	background-color: #1A2329;
 	color:#009DDD;
 	text-shadow:0 -1px 0 #000;
 	border:none
 }
 
+
+div#CatList ul li.sel:hover
+{
+	background-color: #161F25;
+}
 div#CatList li.sel .label-prefix
 {
 	color:#FFF;
 }
 
-.label-count,.label-size {
+
+.label-count,.label-size,.pview_custom_view .label-icon {
 	color: #D4D6C9;
 	background-color: #273238;
+}
+
+#pview_save_view_button {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	font-family: monospace, monospace;
 }
 
 li.sel .label-count, li.sel .label-size {
@@ -744,6 +694,12 @@ div#tdcont
 	padding:0
 }
 
+table#maincont td.uicell {
+  overflow: hidden;
+  padding: 0;
+  vertical-align: top;
+}
+
 div#HDivider
 {
 	background:#141414;
@@ -804,13 +760,13 @@ textarea
 	border-radius:2px
 }
 
-input.Button
+input.Button,
+input.Button:not([disabled]):focus
 {
-	background:#2196F3 none repeat scroll 0 0;
+	background: #3498db none repeat scroll 0 0;
 	border-radius:2px;
 	border:none;
 	color:#FFF;
-	cursor:pointer;
 	display:inline;
 	font-weight:700;
 	text-transform:uppercase;
@@ -818,13 +774,60 @@ input.Button
 	line-height:2px;
 	margin:0 10px 0 5px;
 	padding:0;
-	text-shadow:none
+	text-shadow: #2980b9 0px 1px;
 }
 
-input.Button:hover,input.Button:focus
+
+input.Button:not([disabled]):hover
 {
-	background:#1a77c9 none repeat scroll 0 0
+	background-color: #3498db;
+	filter: brightness(1.2);
 }
+
+input.Button:not([disabled]):hover:active
+{
+	background-color: #3498db;
+	filter: brightness(1.3);
+}
+
+input[type="checkbox"]
+{
+	appearance: none;
+	width: 14px;
+	height: 14px;
+	display: inline-flex;
+	background-color: #6f6f6f;
+	font-weight: 700;
+	border-radius: 2px;
+	border: none;
+}
+
+input[type="checkbox"]:checked
+{
+	background-color: #3498db;
+}
+
+input[type="checkbox"]:checked::after {
+	position: relative;
+	left: -2px;
+	font-size: 12px;
+	line-height: 12px;
+	content: "✔";
+	color: #fff;
+	text-shadow: #2980b9 0px 1px;
+}
+
+input[type="checkbox"]:hover
+{
+	filter: brightness(1.2);
+}
+
+input[type="checkbox"]:hover:active
+{
+	filter: brightness(1.3);
+}
+
+
 
 #mainlayout
 {
@@ -1147,22 +1150,10 @@ div#lcont div.std:nth-child(2n+1)
 	font-family:Roboto
 }
 
-#StatusBar table tr td
-{
-	padding-right:5px;
-	border:none;
-	background:transparent url(./images/headers.png) no-repeat right -208px
+.statuscell td:not(:last-child) {
+	padding-right: 5px;
 }
 
-#StatusBar table tr td td
-{
-	background:none
-}
-
-#StatusBar table tr td:last-child
-{
-	border-top:red
-}
 
 #st_up
 {
