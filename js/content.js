@@ -5,7 +5,6 @@
 
 function makeContent()
 {
-	$(".cat").mouseclick(theWebUI.labelContextMenu);
 	$("#st_up").mouseclick(theWebUI.upRateMenu);
 	$("#st_down").mouseclick(theWebUI.downRateMenu);
 
@@ -71,7 +70,7 @@ function makeContent()
 	{
 		$("#torrent_file").val("");
 		$("#add_button").prop("disabled",false);
-		var d = (this.contentDocument || this.contentWindow.document);
+		var d = this.contentDocument;
 		if(d && (d.location.href != "about:blank"))
 		{
 			try { var txt = d.body.textContent ? d.body.textContent : d.body.innerText; eval(txt); } catch(e) {}
@@ -80,8 +79,8 @@ function makeContent()
 	$(document.body).append($("<iframe name='uploadfrmurl'/>").css({visibility: "hidden"}).attr( { name: "uploadfrmurl" } ).width(0).height(0).on('load', function()
 	{
 		$("#url").val("");
-		var d = (this.contentDocument || this.contentWindow.document);
-		if(d.location.href != "about:blank")
+		var d = this.contentDocument;
+		if(d && d.location.href != "about:blank")
 			try { eval(d.body.textContent ? d.body.textContent : d.body.innerText); } catch(e) {}
 	}));
 	theDialogManager.make("padd",theUILang.peerAdd,
@@ -146,11 +145,8 @@ function makeContent()
 		$("#tadd_label_select").empty()
 			.append('<option selected>'+theUILang.No_label+'</option>')
 			.append('<option>'+theUILang.newLabel+'</option>').show();
-		for (var lbl in theWebUI.cLabels)
-		{
-			var lblText = lbl.substring(8);
-			$("#tadd_label_select").append("<option>"+lblText+"</option>");
-		}
+		for(const [torrentLabel] of theWebUI.categoryList.torrentLabelTree.torrentLabels)
+			$("#tadd_label_select").append("<option>"+torrentLabel+"</option>");
 		$("#add_button").prop("disabled",false);
 		$("#tadd_label_select").trigger('change');
 	});
